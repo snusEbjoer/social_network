@@ -48,10 +48,8 @@ async def app_auth_middleware(request: Request, call_next):
             return await call_next()
 
         payload = jwt.decode(token, key=SECRET_KEY, algorithms=ALGORITHM)
-        db_user = await db.execute(
-            select(User).where(User.username == payload["username"])
-        )
-        request.scope["user"] = db_user.scalars().one_or_none()
+        db_user = await user.get_user_by_username(payload["username"])
+        request.scope["user"] = db_user
         return await call_next(request)
     finally:
         await db.close()
